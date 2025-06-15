@@ -3,6 +3,7 @@ import BookModel from '../../models/BookModel';
 import { SpinnerLoading } from '../Utils/SpinnerLoading';
 import { SearchBook } from './components/SearchBook';
 import { Pagination } from '../Utils/Pagination';
+import { apiService } from '../../lib/apiService';
 
 export const SearchBooksPage = () => {
     const [books, setBooks] = useState<BookModel[]>([]);
@@ -18,24 +19,19 @@ export const SearchBooksPage = () => {
 
     useEffect(() => {
         const fetchBooks = async () => {
-            const baseUrl: string = `${process.env.REACT_APP_API}/books`;
-
-            let url: string = '';
+            let responseJson;
 
             if (searchUrl === '') {
-                url = `${baseUrl}?page=${currentPage - 1}&size=${booksPerPage}`;
+                responseJson = await apiService.getBooks(currentPage - 1, booksPerPage);
+            } else if (searchUrl.includes('/search/findByTitleContaining')) {
+                responseJson = await apiService.searchBooks(search, currentPage - 1, booksPerPage);
+            } else if (searchUrl.includes('/search/findByCategory')) {
+                const categoryMatch = searchUrl.match(/category=([^&]+)/);
+                const category = categoryMatch ? categoryMatch[1] : '';
+                responseJson = await apiService.searchBooksByCategory(category, currentPage - 1, booksPerPage);
             } else {
-                let searchWithPage = searchUrl.replace('<pageNumber>', `${currentPage - 1}`)
-                url = baseUrl + searchWithPage;
+                responseJson = await apiService.getBooks(currentPage - 1, booksPerPage);
             }
-
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error('Something went wrong!');
-            }
-
-            const responseJson = await response.json();
 
             const responseData = responseJson._embedded.books;
 
