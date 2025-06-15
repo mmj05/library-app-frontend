@@ -1,7 +1,7 @@
 import { useAuth } from '../../../context/AuthContext';
 import { useState } from 'react';
 import MessageModel from '../../../models/MessageModel';
-import { API_CONFIG } from '../../../lib/apiConfig';
+import { apiService } from '../../../lib/apiService';
 
 export const PostNewMessage = () => {
     const { authState } = useAuth();
@@ -11,26 +11,8 @@ export const PostNewMessage = () => {
     const [displaySuccess, setDisplaySuccess] = useState(false);
 
     async function submitNewQuestion() {
-        const url = `${API_CONFIG.baseURL}/messages/secure/add/message`;
         if (authState?.isAuthenticated && title !== '' && question !== '') {
-            const messageRequestModel: MessageModel = new MessageModel(
-                title,
-                question
-            );
-            const requestOptions = {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${authState?.token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(messageRequestModel),
-            };
-
-            const submitNewQuestionResponse = await fetch(url, requestOptions);
-            if (!submitNewQuestionResponse.ok) {
-                throw new Error('Something went wrong!');
-            }
-
+            await apiService.postMessage(title, question);
             setTitle('');
             setQuestion('');
             setDisplayWarning(false);
