@@ -127,6 +127,10 @@ class ApiService {
         return this.get(`/books/search/findByTitleContaining?title=${searchQuery}&page=${page}&size=${size}`);
     }
 
+    async searchBooksByCategory(category: string, page = 0, size = 20) {
+        return this.get(`/books/search/findByCategory?category=${category}&page=${page}&size=${size}`);
+    }
+
     async returnBook(bookId: number) {
         return this.put(`/books/secure/return?bookId=${bookId}`);
     }
@@ -145,8 +149,8 @@ class ApiService {
     }
 
     // Messages endpoints
-    async getMessages(page = 0, size = 5) {
-        return this.get(`/messages/search/findByUserEmail?userEmail={userEmail}&page=${page}&size=${size}`);
+    async getMessages(userEmail: string, page = 0, size = 5) {
+        return this.get(`/messages/search/findByUserEmail?userEmail=${userEmail}&page=${page}&size=${size}`);
     }
 
     async postMessage(title: string, question: string) {
@@ -182,8 +186,8 @@ class ApiService {
     }
 
     // Payment endpoints
-    async getFees() {
-        return this.get('/payments/search/findByUserEmail?userEmail={userEmail}');
+    async getFees(userEmail: string) {
+        return this.get(`/payments/search/findByUserEmail?userEmail=${userEmail}`);
     }
 
     async createPaymentIntent(amount: number, currency: string, userEmail: string) {
@@ -199,8 +203,8 @@ class ApiService {
     }
 
     // History endpoints
-    async getHistory(page = 0, size = 5) {
-        return this.get(`/histories/search/findBooksByUserEmail?userEmail={userEmail}&page=${page}&size=${size}`);
+    async getHistory(userEmail: string, page = 0, size = 5) {
+        return this.get(`/histories/search/findBooksByUserEmail?userEmail=${userEmail}&page=${page}&size=${size}`);
     }
 }
 
