@@ -22,7 +22,7 @@ export const HistoryPage = () => {
     useEffect(() => {
         const fetchUserHistory = async () => {
             if (authState && authState.isAuthenticated) {
-                const url = `${API_CONFIG.baseURL}/histories/search/findBooksByUserEmail/?userEmail=${authState.user?.email}&page=${currentPage - 1}&size=5`;
+                const url = `${API_CONFIG.baseURL}/histories/search/findBooksByUserEmail?userEmail=${authState.user?.email}&page=${currentPage - 1}&size=5`;
                 const requestOptions = {
                     method: 'GET',
                     headers: {
