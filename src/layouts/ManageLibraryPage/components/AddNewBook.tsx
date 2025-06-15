@@ -1,7 +1,7 @@
 import { useAuth } from '../../../context/AuthContext';
 import { useState } from 'react';
 import AddBookRequest from '../../../models/AddBookRequest';
-import { API_CONFIG } from '../../../lib/apiConfig';
+import { apiService } from '../../../lib/apiService';
 
 export const AddNewBook = () => {
     const { authState } = useAuth();
@@ -40,7 +40,6 @@ export const AddNewBook = () => {
     }
 
     async function submitNewBook() {
-        const url = `${API_CONFIG.baseURL}/admin/secure/add/book`;
         if (
             authState?.isAuthenticated &&
             title !== '' &&
@@ -57,19 +56,8 @@ export const AddNewBook = () => {
                 category
             );
             book.img = selectedImage;
-            const requestOptions = {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${authState?.token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(book),
-            };
 
-            const submitNewBookResponse = await fetch(url, requestOptions);
-            if (!submitNewBookResponse.ok) {
-                throw new Error('Something went wrong!');
-            }
+            await apiService.addBook(book);
             setTitle('');
             setAuthor('');
             setDescription('');
