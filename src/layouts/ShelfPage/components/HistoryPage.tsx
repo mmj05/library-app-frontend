@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import HistoryModel from '../../../models/HistoryModel';
 import { Pagination } from '../../Utils/Pagination';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
-import { API_CONFIG } from '../../../lib/apiConfig';
+import { apiService } from '../../../lib/apiService';
 
 export const HistoryPage = () => {
     
@@ -21,25 +21,12 @@ export const HistoryPage = () => {
 
     useEffect(() => {
         const fetchUserHistory = async () => {
-            if (authState && authState.isAuthenticated) {
-                const url = `${API_CONFIG.baseURL}/histories/search/findBooksByUserEmail?userEmail=${authState.user?.email}&page=${currentPage - 1}&size=5`;
-                const requestOptions = {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                };
-                const historyResponse = await fetch(url, requestOptions);
-                if (!historyResponse.ok) {
-                    throw new Error('Something went wrong!');
-                }
-                const historyResponseJson = await historyResponse.json();
-
+            if (authState && authState.isAuthenticated && authState.user?.email) {
+                const historyResponseJson = await apiService.getHistory(authState.user.email, currentPage - 1, 5);
                 setHistories(historyResponseJson._embedded.histories);
                 setTotalPages(historyResponseJson.page.totalPages);
             }
             setIsLoadingHistory(false);
-
         }
         fetchUserHistory().catch((error: any) => {
             setIsLoadingHistory(false);
