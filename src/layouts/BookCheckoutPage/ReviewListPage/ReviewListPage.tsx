@@ -3,6 +3,7 @@ import ReviewModel from '../../../models/ReviewModel';
 import { Pagination } from '../../Utils/Pagination';
 import { Review } from '../../Utils/Review';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
+import { apiService } from '../../../lib/apiService';
 
 export const ReviewListPage = () => {
     const [reviews, setReviews] = useState<ReviewModel[]>([]);
@@ -20,17 +21,7 @@ export const ReviewListPage = () => {
 
     useEffect(() => {
         const fetchBookReviewsData = async () => {
-            const reviewUrl: string = `${process.env.REACT_APP_API}/reviews/search/findByBookId?bookId=${bookId}&page=${
-                currentPage - 1
-            }&size=${reviewsPerPage}`;
-
-            const responseReviews = await fetch(reviewUrl);
-
-            if (!responseReviews.ok) {
-                throw new Error('Something went wrong!');
-            }
-
-            const responseJsonReviews = await responseReviews.json();
+            const responseJsonReviews = await apiService.getReviewsByBook(parseInt(bookId), currentPage - 1, reviewsPerPage);
 
             const responseData = responseJsonReviews._embedded.reviews;
 
