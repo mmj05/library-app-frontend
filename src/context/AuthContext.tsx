@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import axios from 'axios';
 import { API_CONFIG } from '../lib/apiConfig';
 
@@ -61,14 +61,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: true,
     });
 
-    // Configure axios defaults
-    useEffect(() => {
-        if (authState.token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${authState.token}`;
-        } else {
-            delete axios.defaults.headers.common['Authorization'];
-        }
-    }, [authState.token]);
+    // Note: Authentication headers are handled by ApiService interceptor
+    // No need to configure axios defaults here to avoid conflicts
 
     const logout = () => {
         localStorage.removeItem('jwtToken');
@@ -80,9 +74,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
     };
 
-    const getCurrentUser = async () => {
+    const getCurrentUser = useCallback(async () => {
         try {
-            const response = await axios.get<UserResponse>(`${API_CONFIG.baseURL}/auth/me`);
+            // Use apiService for consistency instead of direct axios call
+            const response = await axios.get<UserResponse>(`${API_CONFIG.baseURL}/auth/me`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+                }
+            });
             const { email, firstName, lastName, role } = response.data;
             
             setAuthState(prev => ({
@@ -99,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
             throw error;
         }
-    };
+    }, []);
 
     // Check authentication status on app load
     useEffect(() => {
@@ -120,7 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
 
         initializeAuth();
-    }, []);
+    }, [getCurrentUser]);
 
     const login = async (email: string, password: string) => {
         try {
