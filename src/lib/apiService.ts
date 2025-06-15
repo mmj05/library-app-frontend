@@ -17,6 +17,9 @@ class ApiService {
                 const token = localStorage.getItem('jwtToken');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
+                    console.debug('Added authorization header to request:', config.url);
+                } else {
+                    console.warn('No JWT token found in localStorage for secure request:', config.url);
                 }
                 return config;
             },
@@ -31,6 +34,12 @@ class ApiService {
                 return response;
             },
             (error: any) => {
+                console.error('API Error:', {
+                    url: error.config?.url,
+                    status: error.response?.status,
+                    message: error.response?.data?.message || error.message
+                });
+                
                 // Only redirect on 401 (Unauthorized), not 403 (Forbidden)
                 // 403 might be a permission issue, not necessarily invalid token
                 if (error.response?.status === 401) {
@@ -69,11 +78,11 @@ class ApiService {
 
     // Specific API methods
     async getUserReviewForBook(bookId: string): Promise<boolean> {
-        return this.get(`/reviews/secure/user/book/?bookId=${bookId}`);
+        return this.get(`/reviews/secure/user/book?bookId=${bookId}`);
     }
 
     async isBookCheckedOutByUser(bookId: string): Promise<boolean> {
-        return this.get(`/books/secure/ischeckedout/byuser/?bookId=${bookId}`);
+        return this.get(`/books/secure/ischeckedout/byuser?bookId=${bookId}`);
     }
 
     async getCurrentLoansCount(): Promise<number> {
@@ -81,7 +90,7 @@ class ApiService {
     }
 
     async checkoutBook(bookId: string): Promise<void> {
-        return this.put(`/books/secure/checkout/?bookId=${bookId}`);
+        return this.put(`/books/secure/checkout?bookId=${bookId}`);
     }
 
     async submitReview(reviewData: any): Promise<void> {
