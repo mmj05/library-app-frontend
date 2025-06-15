@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import BookModel from '../../../models/BookModel';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
 import { Link } from 'react-router-dom';
-import { API_CONFIG } from '../../../lib/apiConfig';
+import { apiService } from '../../../lib/apiService';
 
 export const Carousel = () => {
     const [books, setBooks] = useState<BookModel[]>([]);
@@ -12,17 +12,7 @@ export const Carousel = () => {
 
     useEffect(() => {
         const fetchBooks = async () => {
-            const baseUrl: string = `${API_CONFIG.baseURL}/books`;
-
-            const url: string = `${baseUrl}?page=0&size=9`;
-
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error('Something went wrong!');
-            }
-
-            const responseJson = await response.json();
+            const responseJson = await apiService.getBooks(0, 9);
 
             const responseData = responseJson._embedded.books;
 
