@@ -89,9 +89,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 ...prev,
                 user: { email, firstName, lastName, role },
                 isAuthenticated: true,
+                isLoading: false,
             }));
-        } catch (error) {
+        } catch (error: any) {
             console.error('Get current user error:', error);
+            // Only logout if it's actually an auth error, not other errors
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                logout();
+            }
             throw error;
         }
     };
@@ -103,14 +108,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             if (token) {
                 try {
-                    setAuthState(prev => ({ ...prev, token, isAuthenticated: true }));
+                    setAuthState(prev => ({ ...prev, token }));
                     await getCurrentUser();
                 } catch (error) {
                     console.error('Error initializing auth:', error);
                     logout();
                 }
+            } else {
+                setAuthState(prev => ({ ...prev, isLoading: false }));
             }
-            setAuthState(prev => ({ ...prev, isLoading: false }));
         };
 
         initializeAuth();
