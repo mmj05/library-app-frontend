@@ -4,6 +4,7 @@ import BookModel from '../../../models/BookModel';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
 import { Pagination } from '../../Utils/Pagination';
 import { ChangeQuantityOfBook } from './ChangeQuantityOfBook';
+import { apiService } from '../../../lib/apiService';
 
 export const ChangeQuantityOfBooks = () => {
     const [books, setBooks] = useState<BookModel[]>([]);
@@ -18,17 +19,7 @@ export const ChangeQuantityOfBooks = () => {
 
     useEffect(() => {
         const fetchBooks = async () => {
-            const baseUrl: string = `${process.env.REACT_APP_API}/books?page=${
-                currentPage - 1
-            }&size=${booksPerPage}`;
-
-            const response = await fetch(baseUrl);
-
-            if (!response.ok) {
-                throw new Error('Something went wrong!');
-            }
-
-            const responseJson = await response.json();
+            const responseJson = await apiService.getBooks(currentPage - 1, booksPerPage);
 
             const responseData = responseJson._embedded.books;
 
