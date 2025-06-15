@@ -5,7 +5,7 @@ import { Pagination } from '../../Utils/Pagination';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
 import { AdminMessage } from './AdminMessage';
 import AdminMessageRequest from '../../../models/AdminMessageRequest';
-import { API_CONFIG } from '../../../lib/apiConfig';
+import { apiService } from '../../../lib/apiService';
 
 export const AdminMessages = () => {
     const { authState } = useAuth();
@@ -28,22 +28,7 @@ export const AdminMessages = () => {
     useEffect(() => {
         const fetchUserMessages = async () => {
             if (authState && authState.isAuthenticated) {
-                const url = `${API_CONFIG.baseURL}/messages/search/findByClosed/?closed=false&page=${
-                    currentPage - 1
-                }&size=${messagesPerPage}`;
-                const requestOptions = {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${authState.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                };
-                const messagesResponse = await fetch(url, requestOptions);
-                if (!messagesResponse.ok) {
-                    throw new Error('Something went wrong!');
-                }
-                const messagesResponseJson = await messagesResponse.json();
-
+                const messagesResponseJson = await apiService.getAdminMessages(currentPage - 1, messagesPerPage);
                 setMessages(messagesResponseJson._embedded.messages);
                 setTotalPages(messagesResponseJson.page.totalPages);
             }
@@ -69,22 +54,8 @@ export const AdminMessages = () => {
     }
 
     async function submitResponseToQuestion(id: number, response: string) {
-        const url = `${API_CONFIG.baseURL}/messages/secure/admin/message`;
         if (authState && authState?.isAuthenticated && id !== null && response !== '') {
-            const messageAdminRequestModel: AdminMessageRequest = new AdminMessageRequest(id, response);
-            const requestOptions = {
-                method: 'PUT',
-                headers: {
-                    Authorization: `Bearer ${authState?.token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(messageAdminRequestModel)
-            };
-
-            const messageAdminRequestModelResponse = await fetch(url, requestOptions);
-            if (!messageAdminRequestModelResponse.ok) {
-                throw new Error('Something went wrong!');
-            }
+            await apiService.respondToMessage(id, response);
             setBtnSubmit(!btnSubmit);
         }
     }
