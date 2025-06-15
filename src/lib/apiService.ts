@@ -40,16 +40,14 @@ class ApiService {
                     message: error.response?.data?.message || error.message
                 });
                 
-                // Only redirect on 401 (Unauthorized), not 403 (Forbidden)
-                // 403 might be a permission issue, not necessarily invalid token
+                // Log authentication errors but don't automatically handle them
+                // Let the AuthContext handle authentication state management
                 if (error.response?.status === 401) {
-                    console.error('Token expired or invalid, redirecting to login');
-                    localStorage.removeItem('jwtToken');
-                    // Only redirect if not already on login page
-                    if (window.location.pathname !== '/login') {
-                        window.location.href = '/login';
-                    }
+                    console.warn('Authentication error detected - token may be expired or invalid');
+                    // Don't automatically remove token or redirect here
+                    // The AuthContext will handle this properly
                 }
+                
                 return Promise.reject(error);
             }
         );
