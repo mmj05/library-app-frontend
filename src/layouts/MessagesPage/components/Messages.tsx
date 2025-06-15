@@ -3,7 +3,7 @@ import { useAuth } from '../../../context/AuthContext';
 import MessageModel from '../../../models/MessageModel';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
 import { Pagination } from '../../Utils/Pagination';
-import { API_CONFIG } from '../../../lib/apiConfig';
+import { apiService } from '../../../lib/apiService';
 
 export const Messages = () => {
     const { authState } = useAuth();
@@ -20,22 +20,8 @@ export const Messages = () => {
 
     useEffect(() => {
         const fetchUserMessages = async () => {
-            if (authState && authState?.isAuthenticated) {
-                const url = `${API_CONFIG.baseURL}/messages/search/findByUserEmail/?userEmail=${
-                    authState.user?.email
-                }&page=${currentPage - 1}&size=${messagesPerPage}`;
-                const requestOptions = {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${authState?.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                };
-                const messagesResponse = await fetch(url, requestOptions);
-                if (!messagesResponse.ok) {
-                    throw new Error('Something went wrong!');
-                }
-                const messagesResponseJson = await messagesResponse.json();
+            if (authState && authState?.isAuthenticated && authState.user?.email) {
+                const messagesResponseJson = await apiService.getMessages(authState.user.email, currentPage - 1, messagesPerPage);
                 setMessages(messagesResponseJson._embedded.messages);
                 setTotalPages(messagesResponseJson.page.totalPages);
             }
