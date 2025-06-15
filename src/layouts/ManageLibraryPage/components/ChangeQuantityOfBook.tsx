@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import BookModel from '../../../models/BookModel';
 import { useAuth } from '../../../context/AuthContext';
-import { API_CONFIG } from '../../../lib/apiConfig';
+import { apiService } from '../../../lib/apiService';
 
 export const ChangeQuantityOfBook: React.FC<{
     book: BookModel;
@@ -22,58 +22,19 @@ export const ChangeQuantityOfBook: React.FC<{
     }, [props.book.copies, props.book.copiesAvailable]);
 
     async function increaseQuantity() {
-        const url = `${API_CONFIG.baseURL}/admin/secure/increase/book/quantity/?bookId=${props.book?.id}`;
-        const requestOptions = {
-            method: 'PUT',
-            headers: {
-                Authorization: `Bearer ${authState?.token}`,
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const quantityUpdateResponse = await fetch(url, requestOptions);
-        if (!quantityUpdateResponse.ok) {
-            throw new Error('Something went wrong!');
-        }
-
+        await apiService.increaseBookQuantity(props.book?.id);
         setQuantity(quantity + 1);
         setRemaining(remaining + 1);
     }
 
     async function decreaseQuantity() {
-        const url = `${API_CONFIG.baseURL}/admin/secure/decrease/book/quantity/?bookId=${props.book?.id}`;
-        const requestOptions = {
-            method: 'PUT',
-            headers: {
-                Authorization: `Bearer ${authState?.token}`,
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const quantityUpdateResponse = await fetch(url, requestOptions);
-        if (!quantityUpdateResponse.ok) {
-            throw new Error('Something went wrong!');
-        }
-
+        await apiService.decreaseBookQuantity(props.book?.id);
         setQuantity(quantity - 1);
         setRemaining(remaining - 1);
     }
 
     async function deleteBook() {
-        const url = `${API_CONFIG.baseURL}/admin/secure/delete/book/?bookId=${props.book?.id}`;
-        const requestOptions = {
-            method: 'DELETE',
-            headers: {
-                Authorization: `Bearer ${authState?.token}`,
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const updateResponse = await fetch(url, requestOptions);
-        if (!updateResponse.ok) {
-            throw new Error('Something went wrong!');
-        }
-
+        await apiService.deleteBook(props.book?.id);
         props.deleteBook();
     }
 
