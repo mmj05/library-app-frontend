@@ -4,7 +4,7 @@ import { SpinnerLoading } from '../Utils/SpinnerLoading';
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { Link } from 'react-router-dom';
 import PaymentInfoRequest from '../../models/PaymentInfoRequest';
-import { API_CONFIG } from '../../lib/apiConfig';
+import { apiService } from '../../lib/apiService';
 
 export const PaymentPage = () => {
     const { authState } = useAuth();
@@ -15,17 +15,8 @@ export const PaymentPage = () => {
 
     useEffect(() => {
         const fetchFees = async () => {
-            if (authState && authState.isAuthenticated) {
-                const url = `${API_CONFIG.baseURL}/payments/search/findByUserEmail?userEmail=${authState.user?.email}`;
-                const requestOptions = {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' },
-                };
-                const paymentResponse = await fetch(url, requestOptions);
-                if (!paymentResponse.ok) {
-                    throw new Error('Something went wrong!');
-                }
-                const paymentResponseJson = await paymentResponse.json();
+            if (authState && authState.isAuthenticated && authState.user?.email) {
+                const paymentResponseJson = await apiService.getFees(authState.user.email);
                 setFees(paymentResponseJson.amount);
                 setLoadingFees(false);
             }
@@ -52,23 +43,11 @@ export const PaymentPage = () => {
             authState?.user?.email
         );
 
-        const url = `${API_CONFIG.baseURL}/payment/secure/payment-intent`;
-        const requestOptions = {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${authState?.token}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(paymentInfo),
-        };
-        const stripeResponse = await fetch(url, requestOptions);
-        if (!stripeResponse.ok) {
-            setHttpError(true);
-            setSubmitDisabled(false);
-            throw new Error('Something went wrong!');
-        }
-
-        const stripeResponseJson = await stripeResponse.json();
+        const stripeResponseJson = await apiService.createPaymentIntent(
+            Math.round(fees * 100),
+            'USD',
+            authState?.user?.email || ''
+        );
 
         stripe
             .confirmCardPayment(
@@ -88,20 +67,7 @@ export const PaymentPage = () => {
                     setSubmitDisabled(false);
                     alert('There was an error');
                 } else {
-                    const url = `${API_CONFIG.baseURL}/payment/secure/payment-complete`;
-                    const requestOptions = {
-                        method: 'PUT',
-                        headers: {
-                            Authorization: `Bearer ${authState?.token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    };
-                    const stripeResponse = await fetch(url, requestOptions);
-                    if (!stripeResponse.ok) {
-                        setHttpError(true);
-                        setSubmitDisabled(false);
-                        throw new Error('Something went wrong!');
-                    }
+                    await apiService.completePayment();
                     setFees(0);
                     setSubmitDisabled(false);
                 }
