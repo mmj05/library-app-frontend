@@ -5,6 +5,7 @@ import ShelfCurrentLoans from '../../../models/ShelfCurrentLoans';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
 import { LoansModal } from './LoansModal';
 import { API_CONFIG } from '../../../lib/apiConfig';
+import { apiService } from '../../../lib/apiService';
 
 export const Loans = () => {
     const { authState } = useAuth();
@@ -20,23 +21,7 @@ export const Loans = () => {
     useEffect(() => {
         const fetchUserCurrentLoans = async () => {
             if (authState && authState.isAuthenticated) {
-                const url = `${API_CONFIG.baseURL}/books/secure/currentloans`;
-                const requestOptions = {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${authState.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                };
-                const shelfCurrentLoansResponse = await fetch(
-                    url,
-                    requestOptions
-                );
-                if (!shelfCurrentLoansResponse.ok) {
-                    throw new Error('Something went wrong!');
-                }
-                const shelfCurrentLoansResponseJson =
-                    await shelfCurrentLoansResponse.json();
+                const shelfCurrentLoansResponseJson = await apiService.getCurrentLoans();
                 setShelfCurrentLoans(shelfCurrentLoansResponseJson);
             }
             setIsLoadingUserLoans(false);
@@ -61,35 +46,12 @@ export const Loans = () => {
     }
 
     async function returnBook(bookId: number) {
-        const url = `${API_CONFIG.baseURL}/books/secure/return/?bookId=${bookId}`;
-        const requestOptions = {
-            method: 'PUT',
-            headers: {
-                Authorization: `Bearer ${authState?.token}`,
-                'Content-Type': 'application/json',
-            },
-        };
-        const returnResponse = await fetch(url, requestOptions);
-        if (!returnResponse.ok) {
-            throw new Error('Something went wrong!');
-        }
+        await apiService.returnBook(bookId);
         setCheckout(!checkout);
     }
 
     async function renewLoan(bookId: number) {
-        const url = `${API_CONFIG.baseURL}/books/secure/renew/loan/?bookId=${bookId}`;
-        const requestOptions = {
-            method: 'PUT',
-            headers: {
-                Authorization: `Bearer ${authState?.token}`,
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const returnResponse = await fetch(url, requestOptions);
-        if (!returnResponse.ok) {
-            throw new Error('Something went wrong!');
-        }
+        await apiService.renewLoan(bookId);
         setCheckout(!checkout);
     }
 
