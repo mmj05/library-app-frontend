@@ -22,6 +22,7 @@ interface AuthContextType {
     register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
     logout: () => void;
     getCurrentUser: () => Promise<void>;
+    refreshAuth: () => Promise<void>;
 }
 
 interface LoginResponse {
@@ -292,12 +293,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     };
 
+    const refreshAuth = async () => {
+        console.log('Refreshing authentication...');
+        try {
+            await getCurrentUser();
+        } catch (error) {
+            console.error('Failed to refresh authentication:', error);
+            logout();
+            throw error;
+        }
+    };
+
     const value: AuthContextType = {
         authState,
         login,
         register,
         logout,
         getCurrentUser,
+        refreshAuth,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
