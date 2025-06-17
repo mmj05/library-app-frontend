@@ -17,13 +17,13 @@ class ApiService {
                 const token = localStorage.getItem('jwtToken');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
-                    console.debug('Added authorization header to request:', config.url);
                 } else {
-                    console.warn('No JWT token found in localStorage for secure request:', config.url);
+                    console.warn('No JWT token found for secure request:', config.url);
                 }
                 return config;
             },
             (error: any) => {
+                console.error('Request interceptor error:', error);
                 return Promise.reject(error);
             }
         );
