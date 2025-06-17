@@ -208,14 +208,38 @@ export const BookCheckoutPage = () => {
             bookId = book.id;
         }
 
+        if (!authState?.isAuthenticated) {
+            alert('You must be logged in to submit a review. Please log in and try again.');
+            return;
+        }
+        
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            alert('Authentication token is missing. Please log out and log in again.');
+            return;
+        }
+
         const reviewRequestModel = new ReviewRequestModel(
             starInput,
             bookId,
             reviewDescription
         );
         
-        await apiService.submitReview(reviewRequestModel);
-        setIsReviewLeft(true);
+        try {
+            await apiService.submitReview(reviewRequestModel);
+            setIsReviewLeft(true);
+        } catch (error: any) {
+            console.error('Submit review error:', error);
+            if (error.response?.status === 403) {
+                alert('Authentication failed. Your session may have expired. You will be redirected to login.');
+                window.location.href = '/login';
+            } else if (error.response?.status === 401) {
+                alert('Your session has expired. Please log in again.');
+                window.location.href = '/login';
+            } else {
+                alert('Failed to submit review. Please try again.');
+            }
+        }
     }
 
     return (
