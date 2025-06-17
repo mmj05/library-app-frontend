@@ -83,6 +83,19 @@ export const Loans = () => {
                                             />
                                         )}
                                     </div>
+                                    <div className='col-4 col-md-4 container'>
+                                        <div className='ml-2'>
+                                            <h4>{shelfCurrentLoan.book?.title}</h4>
+                                            {shelfCurrentLoan.book?.author && (
+                                                <h5 className='text-primary'>
+                                                    {shelfCurrentLoan.book?.author}
+                                                </h5>
+                                            )}
+                                            {shelfCurrentLoan.book?.description && (
+                                                <p>{shelfCurrentLoan.book?.description}</p>
+                                            )}
+                                        </div>
+                                    </div>
                                     <div className='card col-3 col-md-3 container d-flex'>
                                         <div className='card-body'>
                                             <div className='mt-3'>
@@ -187,6 +200,17 @@ export const Loans = () => {
                                             height='349'
                                             alt='Book'
                                         />
+                                    )}
+                                </div>
+                                <div className='mt-3 text-center'>
+                                    <h4>{shelfCurrentLoan.book?.title}</h4>
+                                    {shelfCurrentLoan.book?.author && (
+                                        <h5 className='text-primary'>
+                                            {shelfCurrentLoan.book?.author}
+                                        </h5>
+                                    )}
+                                    {shelfCurrentLoan.book?.description && (
+                                        <p className='text-muted'>{shelfCurrentLoan.book?.description}</p>
                                     )}
                                 </div>
                                 <div className='card d-flex mt-5 mb-3'>
