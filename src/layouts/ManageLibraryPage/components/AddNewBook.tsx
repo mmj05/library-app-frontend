@@ -130,19 +130,19 @@ export const AddNewBook = () => {
                                     <li>
                                         <button
                                             type='button'
-                                            onClick={() => categoryField('FE')}
+                                            onClick={() => categoryField('Front-End')}
                                             className='dropdown-item'
                                         >
-                                            Front End
+                                            Front-End
                                         </button>
                                     </li>
                                     <li>
                                         <button
                                             type='button'
-                                            onClick={() => categoryField('BE')}
+                                            onClick={() => categoryField('Back-End')}
                                             className='dropdown-item'
                                         >
-                                            Back End
+                                            Back-End
                                         </button>
                                     </li>
                                     <li>
