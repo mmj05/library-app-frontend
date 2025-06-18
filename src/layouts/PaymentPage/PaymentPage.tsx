@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { SpinnerLoading } from '../Utils/SpinnerLoading';
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { Link } from 'react-router-dom';
-import PaymentInfoRequest from '../../models/PaymentInfoRequest';
 import { apiService } from '../../lib/apiService';
 
 export const PaymentPage = () => {
@@ -37,42 +36,77 @@ export const PaymentPage = () => {
 
         setSubmitDisabled(true);
 
-        let paymentInfo = new PaymentInfoRequest(
-            Math.round(fees * 100),
-            'USD',
-            authState?.user?.email
-        );
+        try {
+            const stripeResponseJson = await apiService.createPaymentIntent(
+                Math.round(fees * 100),
+                'USD',
+                authState?.user?.email || ''
+            );
 
-        const stripeResponseJson = await apiService.createPaymentIntent(
-            Math.round(fees * 100),
-            'USD',
-            authState?.user?.email || ''
-        );
-
-        stripe
-            .confirmCardPayment(
-                stripeResponseJson.client_secret,
-                {
-                    payment_method: {
-                        card: elements.getElement(CardElement)!,
-                        billing_details: {
-                            email: authState?.user?.email,
-                        },
-                    },
-                },
-                { handleActions: false }
-            )
-            .then(async function (result: any) {
-                if (result.error) {
-                    setSubmitDisabled(false);
-                    alert('There was an error');
-                } else {
+            // Check if this is a mock payment (for development/testing)
+            if (stripeResponseJson.client_secret.startsWith('pi_mock')) {
+                // Handle mock payment - skip Stripe confirmation
+                try {
                     await apiService.completePayment();
                     setFees(0);
                     setSubmitDisabled(false);
+                    alert('Payment completed successfully! (Mock payment for development)');
+                } catch (error: any) {
+                    console.error('Payment completion error:', error);
+                    setSubmitDisabled(false);
+                    alert('There was an error completing the mock payment. Please contact support.');
                 }
-            });
+            } else {
+                // Handle real Stripe payment
+                stripe
+                    .confirmCardPayment(
+                        stripeResponseJson.client_secret,
+                        {
+                            payment_method: {
+                                card: elements.getElement(CardElement)!,
+                                billing_details: {
+                                    email: authState?.user?.email,
+                                },
+                            },
+                        },
+                        { handleActions: false }
+                    )
+                    .then(async function (result: any) {
+                        if (result.error) {
+                            setSubmitDisabled(false);
+                            alert('There was an error processing your payment');
+                        } else {
+                            try {
+                                await apiService.completePayment();
+                                setFees(0);
+                                setSubmitDisabled(false);
+                                alert('Payment completed successfully!');
+                            } catch (error: any) {
+                                console.error('Payment completion error:', error);
+                                setSubmitDisabled(false);
+                                alert('Payment was processed but there was an error completing the transaction. Please contact support.');
+                            }
+                        }
+                    })
+                    .catch((error: any) => {
+                        console.error('Stripe payment confirmation error:', error);
+                        setSubmitDisabled(false);
+                        alert('There was an error processing your payment');
+                    });
+            }
             setHttpError(false);
+        } catch (error: any) {
+            console.error('Payment intent creation error:', error);
+            setSubmitDisabled(false);
+            
+            if (error.response?.status === 403) {
+                alert('Authentication failed. Please log out and log in again.');
+            } else if (error.response?.status === 401) {
+                alert('Your session has expired. Please log in again.');
+            } else {
+                alert('There was an error creating the payment. Please try again.');
+            }
+        }
     }
 
     if (loadingFees) {
