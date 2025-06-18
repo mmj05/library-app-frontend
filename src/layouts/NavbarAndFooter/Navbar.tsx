@@ -83,7 +83,7 @@ export const Navbar = () => {
                                 <li className='nav-item m-1'>
                                     <Link
                                         type='button'
-                                        className='btn btn-primary'
+                                        className='btn btn-outline-light'
                                         to='/register'
                                     >
                                         Sign up
