@@ -75,7 +75,7 @@ const LoginForm: React.FC = () => {
                                 </div>
                                 <button 
                                     type="submit" 
-                                    className="btn btn-primary w-100"
+                                    className="btn main-color text-white w-100"
                                     disabled={isLoading}
                                 >
                                     {isLoading ? 'Signing In...' : 'Sign In'}
