@@ -8,7 +8,7 @@ export const Footer = () => {
                 justify-content-between align-items-center py-5 main-color'
             >
                 <p className='col-md-4 mb-0 text-white'>
-                    © Example Library App, Inc
+                    © Love to Read, Inc
                 </p>
                 <ul className='nav navbar-dark col-md-4 justify-content-end'>
                     <li className='nav-item'>
