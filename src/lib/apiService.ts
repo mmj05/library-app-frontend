@@ -37,6 +37,7 @@ class ApiService {
                 console.error('API Error:', {
                     url: error.config?.url,
                     status: error.response?.status,
+                    data: error.response?.data,
                     message: error.response?.data?.message || error.message
                 });
                 
