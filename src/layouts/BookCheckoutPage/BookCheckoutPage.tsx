@@ -196,8 +196,34 @@ export const BookCheckoutPage = () => {
             await apiService.checkoutBook(bookId!);
             setDisplayError(false);
             setIsCheckedOut(true);
-        } catch (error) {
+        } catch (error: any) {
+            console.error('Checkout error:', error);
             setDisplayError(true);
+            
+            // Handle specific error cases
+            if (error.response?.status === 400) {
+                const errorData = error.response.data;
+                
+                // Check if it's already a parsed object or a string
+                let parsedError = errorData;
+                if (typeof errorData === 'string') {
+                    try {
+                        parsedError = JSON.parse(errorData);
+                    } catch (parseError) {
+                        console.error('Error parsing error response:', parseError);
+                        throw new Error('Something went wrong!');
+                    }
+                }
+                
+                // Handle outstanding fees error
+                if (parsedError.error === 'Outstanding fees' || parsedError.error === 'Book unavailable') {
+                    // The error message will be displayed by the displayError state
+                    // Don't throw an error, just return to show the UI error message
+                    return;
+                }
+            }
+            
+            // For other errors, still throw to maintain existing behavior
             throw new Error('Something went wrong!');
         }
     }
