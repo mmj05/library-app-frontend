@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import BookModel from '../../../models/BookModel';
-import { useAuth } from '../../../context/AuthContext';
 import { apiService } from '../../../lib/apiService';
 
 export const ChangeQuantityOfBook: React.FC<{
     book: BookModel;
     deleteBook: any;
 }> = (props, key) => {
-    const { authState } = useAuth();
     const [quantity, setQuantity] = useState<number>(0);
     const [remaining, setRemaining] = useState<number>(0);
 
