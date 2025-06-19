@@ -4,7 +4,6 @@ import MessageModel from '../../../models/MessageModel';
 import { Pagination } from '../../Utils/Pagination';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
 import { AdminMessage } from './AdminMessage';
-import AdminMessageRequest from '../../../models/AdminMessageRequest';
 import { apiService } from '../../../lib/apiService';
 
 export const AdminMessages = () => {
