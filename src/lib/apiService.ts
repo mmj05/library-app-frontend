@@ -1,6 +1,55 @@
 import axios from 'axios';
 import { API_CONFIG } from './apiConfig';
 
+// Define interfaces for better type safety
+interface BookData {
+    title: string;
+    author: string;
+    description: string;
+    category: string;
+    img?: string;
+}
+
+interface ReviewData {
+    rating: number;
+    reviewDescription?: string;
+    bookId: number;
+}
+
+interface PaginatedResponse<T> {
+    _embedded: { [key: string]: T[] };
+    page: {
+        totalElements: number;
+        totalPages: number;
+        size: number;
+        number: number;
+    };
+}
+
+interface LoginResponse {
+    token: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+}
+
+interface UserResponse {
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+}
+
+interface PaymentIntentResponse {
+    client_secret: string;
+    amount: number;
+}
+
+interface FeesResponse {
+    amount: number;
+}
+
 class ApiService {
     private axiosInstance: any;
 
@@ -15,14 +64,14 @@ class ApiService {
         this.axiosInstance.interceptors.request.use(
             (config: any) => {
                 const token = localStorage.getItem('jwtToken');
-                if (token) {
+                if (token && config.headers) {
                     config.headers.Authorization = `Bearer ${token}`;
-                } else {
+                } else if (!token && config.url?.includes('/secure/')) {
                     console.warn('No JWT token found for secure request:', config.url);
                 }
                 return config;
             },
-            (error: any) => {
+            (error: unknown) => {
                 console.error('Request interceptor error:', error);
                 return Promise.reject(error);
             }
@@ -60,12 +109,12 @@ class ApiService {
         return response.data;
     }
 
-    async post(url: string, data?: any): Promise<any> {
+    async post(url: string, data?: unknown): Promise<any> {
         const response = await this.axiosInstance.post(url, data);
         return response.data;
     }
 
-    async put(url: string, data?: any): Promise<any> {
+    async put(url: string, data?: unknown): Promise<any> {
         const response = await this.axiosInstance.put(url, data);
         return response.data;
     }
@@ -92,7 +141,7 @@ class ApiService {
         return this.put(`/books/secure/checkout?bookId=${bookId}`);
     }
 
-    async submitReview(reviewData: any): Promise<void> {
+    async submitReview(reviewData: ReviewData): Promise<void> {
         return this.post('/reviews/secure', reviewData);
     }
 
@@ -100,59 +149,59 @@ class ApiService {
         return this.get(`/books/${bookId}`);
     }
 
-    async getBookReviews(bookId: string): Promise<any> {
+    async getBookReviews(bookId: string): Promise<PaginatedResponse<any>> {
         return this.get(`/reviews/search/findByBookId?bookId=${bookId}`);
     }
 
     // Authentication endpoints
-    async login(email: string, password: string) {
+    async login(email: string, password: string): Promise<LoginResponse> {
         return this.post('/auth/login', { email, password });
     }
 
-    async register(email: string, password: string, firstName: string, lastName: string) {
+    async register(email: string, password: string, firstName: string, lastName: string): Promise<void> {
         return this.post('/auth/register', { email, password, firstName, lastName });
     }
 
-    async getCurrentUser() {
+    async getCurrentUser(): Promise<UserResponse> {
         return this.get('/auth/me');
     }
 
     // Books endpoints
-    async getBooks(page = 0, size = 20) {
+    async getBooks(page = 0, size = 20): Promise<PaginatedResponse<any>> {
         return this.get(`/books?page=${page}&size=${size}`);
     }
 
-    async searchBooks(searchQuery: string, page = 0, size = 20) {
+    async searchBooks(searchQuery: string, page = 0, size = 20): Promise<PaginatedResponse<any>> {
         return this.get(`/books/search/findByTitleContaining?title=${searchQuery}&page=${page}&size=${size}`);
     }
 
-    async searchBooksByCategory(category: string, page = 0, size = 20) {
+    async searchBooksByCategory(category: string, page = 0, size = 20): Promise<PaginatedResponse<any>> {
         return this.get(`/books/search/findByCategory?category=${category}&page=${page}&size=${size}`);
     }
 
-    async returnBook(bookId: number) {
+    async returnBook(bookId: number): Promise<void> {
         return this.put(`/books/secure/return?bookId=${bookId}`);
     }
 
-    async renewLoan(bookId: number) {
+    async renewLoan(bookId: number): Promise<void> {
         return this.put(`/books/secure/renew/loan?bookId=${bookId}`);
     }
 
-    async getCurrentLoans() {
+    async getCurrentLoans(): Promise<any[]> {
         return this.get('/books/secure/currentloans');
     }
 
     // Reviews endpoints
-    async getReviewsByBook(bookId: number, page = 0, size = 5) {
+    async getReviewsByBook(bookId: number, page = 0, size = 5): Promise<PaginatedResponse<any>> {
         return this.get(`/reviews/search/findByBookId?bookId=${bookId}&page=${page}&size=${size}`);
     }
 
     // Messages endpoints
-    async getMessages(userEmail: string, page = 0, size = 5) {
+    async getMessages(userEmail: string, page = 0, size = 5): Promise<PaginatedResponse<any>> {
         return this.get(`/messages/search/findByUserEmail?userEmail=${userEmail}&page=${page}&size=${size}`);
     }
 
-    async postMessage(title: string, question: string) {
+    async postMessage(title: string, question: string): Promise<void> {
         return this.post('/messages/secure/add/message', {
             title,
             question,
@@ -160,36 +209,36 @@ class ApiService {
     }
 
     // Admin endpoints
-    async addBook(bookData: any) {
+    async addBook(bookData: BookData): Promise<void> {
         return this.post('/admin/secure/add/book', bookData);
     }
 
-    async increaseBookQuantity(bookId: number) {
+    async increaseBookQuantity(bookId: number): Promise<void> {
         return this.put(`/admin/secure/increase/book/quantity?bookId=${bookId}`);
     }
 
-    async decreaseBookQuantity(bookId: number) {
+    async decreaseBookQuantity(bookId: number): Promise<void> {
         return this.put(`/admin/secure/decrease/book/quantity?bookId=${bookId}`);
     }
 
-    async deleteBook(bookId: number) {
+    async deleteBook(bookId: number): Promise<void> {
         return this.delete(`/admin/secure/delete/book?bookId=${bookId}`);
     }
 
-    async getAdminMessages(page = 0, size = 5) {
+    async getAdminMessages(page = 0, size = 5): Promise<PaginatedResponse<any>> {
         return this.get(`/messages/search/findByClosed?closed=false&page=${page}&size=${size}`);
     }
 
-    async respondToMessage(id: number, response: string) {
+    async respondToMessage(id: number, response: string): Promise<void> {
         return this.put('/messages/secure/admin/message', { id, response });
     }
 
     // Payment endpoints
-    async getFees(userEmail: string) {
+    async getFees(userEmail: string): Promise<FeesResponse> {
         return this.get(`/payments/search/findByUserEmail?userEmail=${userEmail}`);
     }
 
-    async createPaymentIntent(amount: number, currency: string, userEmail: string) {
+    async createPaymentIntent(amount: number, currency: string, userEmail: string): Promise<PaymentIntentResponse> {
         return this.post('/payment/secure/payment-intent', {
             amount,
             currency,
@@ -197,12 +246,12 @@ class ApiService {
         });
     }
 
-    async completePayment() {
+    async completePayment(): Promise<void> {
         return this.put('/payment/secure/payment-complete');
     }
 
     // History endpoints
-    async getHistory(userEmail: string, page = 0, size = 5) {
+    async getHistory(userEmail: string, page = 0, size = 5): Promise<PaginatedResponse<any>> {
         return this.get(`/histories/search/findBooksByUserEmail?userEmail=${userEmail}&page=${page}&size=${size}`);
     }
 }
