@@ -197,7 +197,9 @@ export const BookCheckoutPage = () => {
             setDisplayError(false);
             setIsCheckedOut(true);
         } catch (error: any) {
-            console.error('Checkout error:', error);
+                            if (process.env.NODE_ENV === 'development') {
+                    console.error('Checkout error:', error);
+                }
             setDisplayError(true);
             
             // Handle specific error cases
