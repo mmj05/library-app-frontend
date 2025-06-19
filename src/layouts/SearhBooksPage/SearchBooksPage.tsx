@@ -61,7 +61,7 @@ export const SearchBooksPage = () => {
             setHttpError(error.message);
         });
         window.scrollTo(0, 0);
-    }, [currentPage, searchUrl, booksPerPage]);
+    }, [currentPage, searchUrl, booksPerPage, search]);
 
     if (isLoading) {
         return <SpinnerLoading />;
@@ -90,8 +90,8 @@ export const SearchBooksPage = () => {
     const categoryField = (value: string) => {
         setCurrentPage(1);
         if (
-            value.toLowerCase() === 'fe' ||
-            value.toLowerCase() === 'be' ||
+            value.toLowerCase() === 'front-end' ||
+            value.toLowerCase() === 'back-end' ||
             value.toLowerCase() === 'data' ||
             value.toLowerCase() === 'devops'
         ) {
@@ -157,20 +157,20 @@ export const SearchBooksPage = () => {
                                             All
                                         </button>
                                     </li>
-                                    <li onClick={() => categoryField('FE')}>
+                                    <li onClick={() => categoryField('Front-End')}>
                                         <button
                                             type='button'
                                             className='dropdown-item'
                                         >
-                                            Front End
+                                            Front-End
                                         </button>
                                     </li>
-                                    <li onClick={() => categoryField('BE')}>
+                                    <li onClick={() => categoryField('Back-End')}>
                                         <button
                                             type='button'
                                             className='dropdown-item'
                                         >
-                                            Back End
+                                            Back-End
                                         </button>
                                     </li>
                                     <li onClick={() => categoryField('Data')}>
