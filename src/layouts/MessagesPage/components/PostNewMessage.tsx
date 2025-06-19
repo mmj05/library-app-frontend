@@ -1,6 +1,5 @@
 import { useAuth } from '../../../context/AuthContext';
 import { useState } from 'react';
-import MessageModel from '../../../models/MessageModel';
 import { apiService } from '../../../lib/apiService';
 
 export const PostNewMessage = () => {
