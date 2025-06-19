@@ -2,6 +2,20 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import axios from 'axios';
 import { API_CONFIG } from '../lib/apiConfig';
 
+// Development logging utility
+const isDevelopment = process.env.NODE_ENV === 'development';
+const logger = {
+    info: (message: string, data?: any) => {
+        if (isDevelopment) console.log(`[Auth] ${message}`, data || '');
+    },
+    error: (message: string, error?: any) => {
+        console.error(`[Auth] ${message}`, error);
+    },
+    warn: (message: string, data?: any) => {
+        if (isDevelopment) console.warn(`[Auth] ${message}`, data || '');
+    }
+};
+
 interface User {
     email: string;
     firstName: string;
@@ -47,7 +61,7 @@ const getStoredToken = (): string | null => {
     try {
         return localStorage.getItem('jwtToken');
     } catch (error) {
-        console.error('Error accessing localStorage:', error);
+        logger.error('Error accessing localStorage:', error);
         return null;
     }
 };
@@ -56,7 +70,7 @@ const setStoredToken = (token: string): void => {
     try {
         localStorage.setItem('jwtToken', token);
     } catch (error) {
-        console.error('Error setting localStorage:', error);
+        logger.error('Error setting localStorage:', error);
     }
 };
 
@@ -64,7 +78,7 @@ const removeStoredToken = (): void => {
     try {
         localStorage.removeItem('jwtToken');
     } catch (error) {
-        console.error('Error removing from localStorage:', error);
+        logger.error('Error removing from localStorage:', error);
     }
 };
 
@@ -75,7 +89,7 @@ const isTokenExpired = (token: string): boolean => {
         const currentTime = Date.now() / 1000;
         return payload.exp < currentTime;
     } catch (error) {
-        console.error('Error checking token expiration:', error);
+        logger.error('Error checking token expiration:', error);
         return true; // Assume expired if we can't parse it
     }
 };
@@ -84,7 +98,7 @@ const isTokenExpired = (token: string): boolean => {
 const clearInvalidToken = (): void => {
     const token = getStoredToken();
     if (token && isTokenExpired(token)) {
-        console.log('Clearing expired token from localStorage');
+        logger.info('Clearing expired token from localStorage');
         removeStoredToken();
     }
 };
@@ -115,11 +129,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Check if there's a token in localStorage during initialization
     const initialToken = getStoredToken();
-    console.log('AuthProvider initializing with token:', initialToken ? `TOKEN_EXISTS (${initialToken.substring(0, 20)}...)` : 'NO_TOKEN');
+    logger.info('AuthProvider initializing', { hasToken: !!initialToken });
     
     // If we have a token, check if it's expired
     if (initialToken && isTokenExpired(initialToken)) {
-        console.log('Token is expired, clearing it');
+        logger.info('Token is expired, clearing it');
         removeStoredToken();
     }
     
@@ -132,7 +146,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: !!validInitialToken, // Only show loading if we have a token to verify
     });
 
-    console.log('AuthProvider initial state:', { 
+    logger.info('AuthProvider initial state', { 
         hasToken: !!authState.token, 
         isAuthenticated: authState.isAuthenticated, 
         isLoading: authState.isLoading 
@@ -142,7 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // But we use our own axios instance for auth verification to avoid conflicts
 
     const logout = () => {
-        console.log('Logging out user');
+        logger.info('Logging out user');
         removeStoredToken();
         setAuthState({
             user: null,
@@ -154,16 +168,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const getCurrentUser = useCallback(async () => {
         const token = getStoredToken();
-        console.log('getCurrentUser called with token:', token ? 'TOKEN_EXISTS' : 'NO_TOKEN');
+        logger.info('getCurrentUser called', { hasToken: !!token });
         
         if (!token) {
-            console.log('No token found, logging out');
+            logger.info('No token found, logging out');
             logout();
             return;
         }
 
         try {
-            console.log('Making request to /auth/me');
+            logger.info('Making request to /auth/me');
             // Use our dedicated auth axios instance instead of apiService
             const response = await authAxios.get<UserResponse>('/auth/me', {
                 headers: {
@@ -172,7 +186,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             });
             const { email, firstName, lastName, role } = response.data;
             
-            console.log('User verification successful:', { email, role });
+            logger.info('User verification successful', { email, role });
             setAuthState(prev => ({
                 ...prev,
                 user: { email, firstName, lastName, role },
@@ -181,14 +195,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 isLoading: false,
             }));
         } catch (error: any) {
-            console.error('Get current user error:', error.response?.status, error.message);
+            logger.error('Get current user error:', error.response?.status || error.message);
             // Token is invalid or expired, clear authentication
             if (error.response?.status === 401 || error.response?.status === 403) {
-                console.log('Token invalid, logging out');
+                logger.info('Token invalid, logging out');
                 logout();
             } else {
                 // For other errors, just set loading to false but keep authentication
-                console.log('Network error, keeping auth state but stopping loading');
+                logger.warn('Network error, keeping auth state but stopping loading');
                 setAuthState(prev => ({ ...prev, isLoading: false }));
             }
             throw error;
@@ -197,14 +211,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Check authentication status on app load
     useEffect(() => {
-        console.log('AuthProvider useEffect running');
+        logger.info('AuthProvider useEffect running');
         const initializeAuth = async () => {
             const token = getStoredToken();
-            console.log('Initializing auth with token:', token ? `TOKEN_EXISTS (${token.substring(0, 20)}...)` : 'NO_TOKEN');
+            logger.info('Initializing auth', { hasToken: !!token });
             
             if (token) {
                 try {
-                    console.log('Verifying token with server');
+                    logger.info('Verifying token with server');
                     // Use our dedicated auth axios instance instead of apiService
                     const response = await authAxios.get<UserResponse>('/auth/me', {
                         headers: {
@@ -213,34 +227,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     });
                     const { email, firstName, lastName, role } = response.data;
                     
-                    console.log('Token verification successful, setting user data');
+                    logger.info('Token verification successful', { email, role });
                     setAuthState(prev => ({
                         ...prev,
                         user: { email, firstName, lastName, role },
                         isLoading: false,
                     }));
                 } catch (error: any) {
-                    console.error('Error initializing auth:', error.response?.status, error.message);
-                    console.error('Full error details:', error.response?.data);
+                    logger.error('Error initializing auth:', error.response?.status || error.message);
                     
                     // Handle different types of auth errors
                     if (error.response?.status === 401) {
-                        console.log('Token is invalid or expired (401), logging out');
+                        logger.info('Token is invalid or expired (401), logging out');
                         logout();
                     } else if (error.response?.status === 403) {
-                        console.log('Token is valid but access is forbidden (403) - this might indicate a backend issue');
-                        // For 403, we might want to keep the user logged in but show an error
-                        // Or we can log them out if 403 indicates invalid token in this context
-                        console.log('Treating 403 as invalid token, logging out');
+                        logger.warn('Token is valid but access is forbidden (403)');
+                        logger.info('Treating 403 as invalid token, logging out');
                         logout();
                     } else {
-                        console.log('Network or other error, keeping auth state but stopping loading');
+                        logger.warn('Network or other error, keeping auth state but stopping loading');
                         setAuthState(prev => ({ ...prev, isLoading: false }));
                     }
                 }
             } else {
                 // No token, ensure state reflects unauthenticated status
-                console.log('No token found, setting unauthenticated state');
+                logger.info('No token found, setting unauthenticated state');
                 setAuthState({
                     user: null,
                     token: null,
@@ -273,7 +284,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 isLoading: false,
             });
         } catch (error) {
-            console.error('Login error:', error);
+            logger.error('Login error:', error);
             throw error;
         }
     };
@@ -288,17 +299,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 lastName,
             });
         } catch (error) {
-            console.error('Registration error:', error);
+            logger.error('Registration error:', error);
             throw error;
         }
     };
 
     const refreshAuth = async () => {
-        console.log('Refreshing authentication...');
+        logger.info('Refreshing authentication...');
         try {
             await getCurrentUser();
         } catch (error) {
-            console.error('Failed to refresh authentication:', error);
+            logger.error('Failed to refresh authentication:', error);
             logout();
             throw error;
         }
