@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import ShelfCurrentLoans from '../../../models/ShelfCurrentLoans';
 import { SpinnerLoading } from '../../Utils/SpinnerLoading';
 import { LoansModal } from './LoansModal';
-import { API_CONFIG } from '../../../lib/apiConfig';
 import { apiService } from '../../../lib/apiService';
 
 export const Loans = () => {
