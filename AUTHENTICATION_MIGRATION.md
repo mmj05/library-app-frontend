@@ -83,9 +83,6 @@ This document outlines the migration from Okta authentication to JWT token-based
 - Automatic token injection in all authenticated requests
 - Automatic logout on token expiration (401 responses)
 
-### 6. Environment Configuration
-- Created `.env` file with `REACT_APP_API=http://localhost:8080/api`
-- All API calls now use centralized configuration
 
 ## Backend Requirements
 
