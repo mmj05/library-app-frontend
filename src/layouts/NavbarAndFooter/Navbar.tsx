@@ -16,7 +16,7 @@ export const Navbar = () => {
     return (
         <nav className='navbar navbar-expand-lg navbar-dark main-color py-3'>
             <div className='container-fluid'>
-                <span className='navbar-brand'>Love to Read</span>
+                <span className='navbar-brand'>Read with Love</span>
                 <button
                     className='navbar-toggler'
                     type='button'
