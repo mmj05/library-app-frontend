@@ -172,7 +172,7 @@ class ApiService {
     }
 
     async searchBooks(searchQuery: string, page = 0, size = 20): Promise<PaginatedResponse<any>> {
-        return this.get(`/books/search/findByTitleContaining?title=${searchQuery}&page=${page}&size=${size}`);
+        return this.get(`/books/search/findByTitleContainingIgnoreCase?title=${searchQuery}&page=${page}&size=${size}`);
     }
 
     async searchBooksByCategory(category: string, page = 0, size = 20): Promise<PaginatedResponse<any>> {
