@@ -23,7 +23,7 @@ export const SearchBooksPage = () => {
 
             if (searchUrl === '') {
                 responseJson = await apiService.getBooks(currentPage - 1, booksPerPage);
-            } else if (searchUrl.includes('/search/findByTitleContaining')) {
+            } else if (searchUrl.includes('/search/findByTitleContainingIgnoreCase')) {
                 responseJson = await apiService.searchBooks(search, currentPage - 1, booksPerPage);
             } else if (searchUrl.includes('/search/findByCategory')) {
                 const categoryMatch = searchUrl.match(/category=([^&]+)/);
@@ -81,7 +81,7 @@ export const SearchBooksPage = () => {
             setSearchUrl('');
         } else {
             setSearchUrl(
-                `/search/findByTitleContaining?title=${search}&page=<pageNumber>&size=${booksPerPage}`
+                `/search/findByTitleContainingIgnoreCase?title=${search}&page=<pageNumber>&size=${booksPerPage}`
             );
         }
         setCategorySelection('Book category')
